@@ -1,5 +1,5 @@
 from fixtures import *
-from src.utils import onehot_from_element, element_from_onehot, data_dict_from_xyz, xyz_from_data_dict
+from src.utils import onehot_from_element, element_from_onehot, data_dict_from_xyz_str, xyz_str_from_data_dict
 
 
 def test_onehot_from_element_execution(parameter_fixture):
@@ -88,43 +88,31 @@ def test_element_from_onehot_value(parameter_fixture):
     assert element == element_f, "Element is incorrect"
 
 
-def test_data_dict_from_xyz_execution(tmp_path, xyz_fixture):
-    xyz_file_content = xyz_fixture["xyz_file_content"]
-
-    tmp_xyz_path = tmp_path / "test_file.xyz"
-    tmp_xyz_path.write_text(xyz_file_content)
-    tmp_xyz_path_str = str(tmp_xyz_path)
+def test_data_dict_from_xyz_str_execution(xyz_fixture):
+    xyz_str = xyz_fixture["xyz_str"]
 
     try:
-        data_dict_from_xyz(tmp_xyz_path_str)
+        data_dict_from_xyz_str(xyz_str)
     except ValueError as e:
         pytest.fail(e)
 
 
-def test_data_dict_from_xyz_output_shape(tmp_path, xyz_fixture):
-    xyz_file_content = xyz_fixture["xyz_file_content"]
+def test_data_dict_from_xyz_str_output_shape(xyz_fixture):
+    xyz_str = xyz_fixture["xyz_str"]
     xyz_data_dict = xyz_fixture["xyz_data_dict"]
 
-    tmp_xyz_path = tmp_path / "test_file.xyz"
-    tmp_xyz_path.write_text(xyz_file_content)
-    tmp_xyz_path_str = str(tmp_xyz_path)
-
-    data_dict = data_dict_from_xyz(tmp_xyz_path_str)
+    data_dict = data_dict_from_xyz_str(xyz_str)
 
     assert data_dict["h"].shape == xyz_data_dict["h"].shape, "Output shape is incorrect"
     assert data_dict["x"].shape == xyz_data_dict["x"].shape, "Output shape is incorrect"
     assert data_dict["e"].shape == xyz_data_dict["e"].shape, "Output shape is incorrect"
 
 
-def test_data_dict_from_xyz_output_value(tmp_path, xyz_fixture):
-    xyz_file_content = xyz_fixture["xyz_file_content"]
+def test_data_dict_from_xyz_str_output_value(xyz_fixture):
+    xyz_str = xyz_fixture["xyz_str"]
     xyz_data_dict = xyz_fixture["xyz_data_dict"]
 
-    tmp_xyz_path = tmp_path / "test_file.xyz"
-    tmp_xyz_path.write_text(xyz_file_content)
-    tmp_xyz_path_str = str(tmp_xyz_path)
-
-    data_dict = data_dict_from_xyz(tmp_xyz_path_str)
+    data_dict = data_dict_from_xyz_str(xyz_str)
 
     assert torch.equal(data_dict["h"], xyz_data_dict["h"]), "Output is incorrect"
     assert torch.equal(data_dict["x"], xyz_data_dict["x"]), "Output is incorrect"
@@ -138,46 +126,56 @@ def test_data_dict_from_xyz_output_value(tmp_path, xyz_fixture):
     assert data_dict["g_ctx"] == xyz_data_dict["g_ctx"], "Output is incorrect"
 
 
-def test_xyz_from_data_dict_execution(tmp_path, xyz_fixture):
+def test_xyz_str_from_data_dict_execution(xyz_fixture):
     xyz_data_dict = xyz_fixture["xyz_data_dict"]
 
-    tmp_xyz_path = tmp_path / "test_file.xyz"
-    tmp_xyz_path_str = str(tmp_xyz_path)
-
     try:
-        xyz_from_data_dict(xyz_data_dict, tmp_xyz_path_str)
+        xyz_str_from_data_dict(xyz_data_dict)
     except ValueError as e:
         pytest.fail(e)
 
 
-def test_xyz_from_data_dict_output_value(tmp_path, xyz_fixture):
+def test_xyz_str_from_data_dict_output_value(xyz_fixture):
     xyz_data_dict = xyz_fixture["xyz_data_dict"]
 
-    tmp_xyz_path = tmp_path / "test_file.xyz"
-    tmp_xyz_path_str = str(tmp_xyz_path)
+    xyz_str = xyz_str_from_data_dict(xyz_data_dict)
+    xyz_lines = xyz_str.splitlines()
 
-    xyz_from_data_dict(xyz_data_dict, tmp_xyz_path_str)
+    assert xyz_lines[0] == "18"
+    assert xyz_lines[1] == ""
+    assert xyz_lines[2] == "C    5.332    5.901   -2.448"
+    assert xyz_lines[3] == "N    4.766    4.809   -3.227"
+    assert xyz_lines[4] == "C    3.410    4.275   -3.077"
+    assert xyz_lines[5] == "C    4.157    3.377   -1.281"
+    assert xyz_lines[6] == "C    3.066    2.425   -1.606"
+    assert xyz_lines[7] == "C    3.427    1.585   -2.612"
+    assert xyz_lines[8] == "C    4.793    2.012   -3.185"
+    assert xyz_lines[9] == "C    4.677    3.493   -2.709"
+    assert xyz_lines[10] == "C    2.819    3.947   -1.680"
+    assert xyz_lines[11] == "H    4.943    6.848   -2.833"
+    assert xyz_lines[12] == "H    6.419    5.897   -2.575"
+    assert xyz_lines[13] == "H    5.106    5.833   -1.375"
+    assert xyz_lines[14] == "H    2.856    4.158   -4.003"
+    assert xyz_lines[15] == "H    4.677    3.417   -0.333"
+    assert xyz_lines[16] == "H    2.740    0.990   -3.208"
+    assert xyz_lines[17] == "H    4.810    1.865   -4.270"
+    assert xyz_lines[18] == "H    5.683    1.528   -2.765"
+    assert xyz_lines[19] == "H    2.095    4.510   -1.101"
 
-    with open(tmp_xyz_path_str, "r") as f:
-        xyz_file_content = f.readlines()
 
-    assert xyz_file_content[0] == "18\n"
-    assert xyz_file_content[1] == "\n"
-    assert xyz_file_content[2] == "C    5.332    5.901   -2.448\n"
-    assert xyz_file_content[3] == "N    4.766    4.809   -3.227\n"
-    assert xyz_file_content[4] == "C    3.410    4.275   -3.077\n"
-    assert xyz_file_content[5] == "C    4.157    3.377   -1.281\n"
-    assert xyz_file_content[6] == "C    3.066    2.425   -1.606\n"
-    assert xyz_file_content[7] == "C    3.427    1.585   -2.612\n"
-    assert xyz_file_content[8] == "C    4.793    2.012   -3.185\n"
-    assert xyz_file_content[9] == "C    4.677    3.493   -2.709\n"
-    assert xyz_file_content[10] == "C    2.819    3.947   -1.680\n"
-    assert xyz_file_content[11] == "H    4.943    6.848   -2.833\n"
-    assert xyz_file_content[12] == "H    6.419    5.897   -2.575\n"
-    assert xyz_file_content[13] == "H    5.106    5.833   -1.375\n"
-    assert xyz_file_content[14] == "H    2.856    4.158   -4.003\n"
-    assert xyz_file_content[15] == "H    4.677    3.417   -0.333\n"
-    assert xyz_file_content[16] == "H    2.740    0.990   -3.208\n"
-    assert xyz_file_content[17] == "H    4.810    1.865   -4.270\n"
-    assert xyz_file_content[18] == "H    5.683    1.528   -2.765\n"
-    assert xyz_file_content[19] == "H    2.095    4.510   -1.101\n"
+def test_inverse(xyz_fixture):
+    xyz_str_original = xyz_str_from_data_dict(xyz_fixture["xyz_data_dict"])
+    xyz_data_dict_original = data_dict_from_xyz_str(xyz_str_original)
+
+    xyz_str_inverted = xyz_str_from_data_dict(data_dict_from_xyz_str(xyz_str_original))
+    assert xyz_str_original == xyz_str_inverted, "Inversibility failed"
+
+    xyz_data_dict_inverted = data_dict_from_xyz_str(xyz_str_from_data_dict(xyz_data_dict_original))
+    assert torch.equal(xyz_data_dict_original["h"], xyz_data_dict_inverted["h"]), "Inversibility failed"
+    assert torch.equal(xyz_data_dict_original["x"], xyz_data_dict_inverted["x"]), "Inversibility failed"
+    assert torch.equal(xyz_data_dict_original["e"], xyz_data_dict_inverted["e"]), "Inversibility failed"
+    assert xyz_data_dict_original["a"] == xyz_data_dict_inverted["a"], "Inversibility failed"
+    assert xyz_data_dict_original["h_ctx"] == xyz_data_dict_inverted["h_ctx"], "Inversibility failed"
+    assert xyz_data_dict_original["x_ctx"] == xyz_data_dict_inverted["x_ctx"], "Inversibility failed"
+    assert xyz_data_dict_original["e_ctx"] == xyz_data_dict_inverted["e_ctx"], "Inversibility failed"
+    assert xyz_data_dict_original["a_ctx"] == xyz_data_dict_inverted["a_ctx"], "Inversibility failed"

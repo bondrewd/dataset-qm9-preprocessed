@@ -38,10 +38,9 @@ def element_from_onehot(onehot: Tensor) -> str:
         return "F"
 
 
-def data_dict_from_xyz(xyz_path: str) -> dict[str, Optional[Tensor]]:
+def data_dict_from_xyz_str(xyz_str: str) -> dict[str, Optional[Tensor]]:
     # Read xyz file
-    with open(xyz_path, "r") as f:
-        lines = f.readlines()
+    lines = xyz_str.splitlines()
 
     # Parse number of atoms
     num_nodes = int(lines[0])
@@ -87,15 +86,18 @@ def data_dict_from_xyz(xyz_path: str) -> dict[str, Optional[Tensor]]:
     return data_dict
 
 
-def xyz_from_data_dict(data_dict: dict[str, Optional[Tensor]], xyz_path: str = "out.xyz"):
-    with open(xyz_path, "w") as f:
-        h = data_dict["h"]
-        x = data_dict["x"]
+def xyz_str_from_data_dict(data_dict: dict[str, Optional[Tensor]]) -> str:
+    xyz_str = ""
 
-        assert h.shape[0] == x.shape[0], "Number of nodes does not match number of coordinates"
+    h = data_dict["h"]
+    x = data_dict["x"]
 
-        f.write(f"{h.shape[0]}\n\n")
+    assert h.shape[0] == x.shape[0], "Number of nodes does not match number of coordinates"
 
-        for onehot, coordinate in zip(h, x):
-            element = element_from_onehot(onehot)
-            f.write(f"{element} {coordinate[0]:8.3f} {coordinate[1]:8.3f} {coordinate[2]:8.3f}\n")
+    xyz_str += f"{h.shape[0]}\n\n"
+
+    for onehot, coordinate in zip(h, x):
+        element = element_from_onehot(onehot)
+        xyz_str += f"{element} {coordinate[0]:8.3f} {coordinate[1]:8.3f} {coordinate[2]:8.3f}\n"
+
+    return xyz_str

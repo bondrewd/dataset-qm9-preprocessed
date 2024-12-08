@@ -34,7 +34,7 @@ def parameter_fixture():
 
 @pytest.fixture
 def xyz_fixture():
-    xyz_file_content = """18
+    xyz_str = """18
 gdb 133859	3.63247	1.74015	1.47284	0.8183	82.97	-0.2044	-0.055	0.1494	927.4789	0.147108	-364.639427	-364.632258	-364.631314	-364.670376	29.576	
 C	5.3319053099	5.9009544883	-2.4481935796	-0.322109
 N	4.7662326987	4.8088964673	-3.2269812874	-0.144953
@@ -113,4 +113,4 @@ InChI=1S/C8H9N/c1-9-7-5-4-2-3-8(5,9)6(4)7/h2,5-7H,3H2,1H3	InChI=1S/C8H9N/c1-9-7-
         "g_ctx": None,
     }
 
-    return {"xyz_file_content": xyz_file_content, "xyz_data_dict": xyz_data_dict}
+    return {"xyz_str": xyz_str, "xyz_data_dict": xyz_data_dict}
