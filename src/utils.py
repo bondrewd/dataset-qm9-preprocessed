@@ -1,0 +1,99 @@
+import itertools
+from typing import Optional
+
+import torch
+from torch import Tensor
+
+
+def onehot_from_element(element: str) -> Tensor:
+    match element:
+        case "H":
+            return torch.tensor([1.0, 0.0, 0.0, 0.0, 0.0], dtype=torch.float32)
+        case "C":
+            return torch.tensor([0.0, 1.0, 0.0, 0.0, 0.0], dtype=torch.float32)
+        case "N":
+            return torch.tensor([0.0, 0.0, 1.0, 0.0, 0.0], dtype=torch.float32)
+        case "O":
+            return torch.tensor([0.0, 0.0, 0.0, 1.0, 0.0], dtype=torch.float32)
+        case "F":
+            return torch.tensor([0.0, 0.0, 0.0, 0.0, 1.0], dtype=torch.float32)
+        case _:
+            raise Exception(f"Unknown element {element}")
+
+
+def element_from_onehot(onehot: Tensor) -> str:
+    if len(onehot) != 5:
+        raise Exception("Invalid onehot format")
+    if torch.sum(onehot) != 1.0:
+        raise Exception("Invalid onehot format")
+    if onehot[0] == 1.0:
+        return "H"
+    if onehot[1] == 1.0:
+        return "C"
+    if onehot[2] == 1.0:
+        return "N"
+    if onehot[3] == 1.0:
+        return "O"
+    if onehot[4] == 1.0:
+        return "F"
+
+
+def xyz_to_data_dict(xyz_path: str) -> dict[str, Optional[Tensor]]:
+    # Read xyz file
+    with open(xyz_path, "r") as f:
+        lines = f.readlines()
+
+    # Parse number of atoms
+    num_nodes = int(lines[0])
+
+    # Parse elements and coordinates
+    elements = []
+    coordinates = []
+    for line in lines[2:num_nodes + 2]:
+        # Tokenize line
+        tokens = line.strip().split()
+        # Parse element
+        element = tokens[0].strip()
+        element = onehot_from_element(element)
+        # Parse coordinates
+        x = float(tokens[1])
+        y = float(tokens[2])
+        z = float(tokens[3])
+        coordinate = torch.tensor([x, y, z])
+        # Save element and coordinates
+        elements.append(element)
+        coordinates.append(coordinate)
+
+    # Generate all possible pairs of nodes
+    edges = list(itertools.combinations(range(num_nodes), 2))
+    # Separate the pairs into source and destination lists
+    src, dst = zip(*edges)
+    # Create a tensor of shape (2, x) where x is the number of edges
+    edge_index = torch.tensor([src + dst, dst + src], dtype=torch.int64)
+
+    data_dict = {
+        "h": torch.tensor(elements, dtype=torch.float32),
+        "x": torch.tensor(coordinates, dtype=torch.float32),
+        "e": torch.tensor(edge_index, dtype=torch.int64),
+        "a": None,
+        "h_ctx": None,
+        "x_ctx": None,
+        "e_ctx": None,
+        "a_ctx": None,
+    }
+
+    return data_dict
+
+
+def data_dict_to_xyz(data_dict: dict[str, Optional[Tensor]], xyz_path: str = "out.xyz"):
+    with open(xyz_path, "w") as f:
+        h = data_dict["h"]
+        x = data_dict["x"]
+
+        assert h.shape[0] == x.shape[0], "Number of nodes does not match number of coordinates"
+
+        f.write(f"{h.shape[0]}\n")
+
+        for onehot, coordinate in zip(h, x):
+            element = element_from_onehot(onehot)
+            f.write(f"{element} {coordinate[0]} {coordinate[1]} {coordinate[2]}\n")
