@@ -8,37 +8,37 @@ from torch import Tensor
 def onehot_from_element(element: str) -> Tensor:
     match element:
         case "H":
-            return torch.tensor([[1.0, 0.0, 0.0, 0.0, 0.0]], dtype=torch.float32)
+            return torch.tensor([1.0, 0.0, 0.0, 0.0, 0.0], dtype=torch.float32)
         case "C":
-            return torch.tensor([[0.0, 1.0, 0.0, 0.0, 0.0]], dtype=torch.float32)
+            return torch.tensor([0.0, 1.0, 0.0, 0.0, 0.0], dtype=torch.float32)
         case "N":
-            return torch.tensor([[0.0, 0.0, 1.0, 0.0, 0.0]], dtype=torch.float32)
+            return torch.tensor([0.0, 0.0, 1.0, 0.0, 0.0], dtype=torch.float32)
         case "O":
-            return torch.tensor([[0.0, 0.0, 0.0, 1.0, 0.0]], dtype=torch.float32)
+            return torch.tensor([0.0, 0.0, 0.0, 1.0, 0.0], dtype=torch.float32)
         case "F":
-            return torch.tensor([[0.0, 0.0, 0.0, 0.0, 1.0]], dtype=torch.float32)
+            return torch.tensor([0.0, 0.0, 0.0, 0.0, 1.0], dtype=torch.float32)
         case _:
             raise ValueError(f"Unknown element {element}")
 
 
 def element_from_onehot(onehot: Tensor) -> str:
-    if onehot.shape != (1, 5):
+    if onehot.shape != (5,):
         raise Exception("Invalid onehot shape")
     if torch.sum(onehot) != 1.0 or torch.sum(onehot > 0.0) != 1:
         raise Exception("Invalid onehot format")
-    if onehot[0, 0] == 1.0:
+    if onehot[0] == 1.0:
         return "H"
-    if onehot[0, 1] == 1.0:
+    if onehot[1] == 1.0:
         return "C"
-    if onehot[0, 2] == 1.0:
+    if onehot[2] == 1.0:
         return "N"
-    if onehot[0, 3] == 1.0:
+    if onehot[3] == 1.0:
         return "O"
-    if onehot[0, 4] == 1.0:
+    if onehot[4] == 1.0:
         return "F"
 
 
-def xyz_to_data_dict(xyz_path: str) -> dict[str, Optional[Tensor]]:
+def data_dict_from_xyz(xyz_path: str) -> dict[str, Optional[Tensor]]:
     # Read xyz file
     with open(xyz_path, "r") as f:
         lines = f.readlines()
@@ -87,15 +87,15 @@ def xyz_to_data_dict(xyz_path: str) -> dict[str, Optional[Tensor]]:
     return data_dict
 
 
-def data_dict_to_xyz(data_dict: dict[str, Optional[Tensor]], xyz_path: str = "out.xyz"):
+def xyz_from_data_dict(data_dict: dict[str, Optional[Tensor]], xyz_path: str = "out.xyz"):
     with open(xyz_path, "w") as f:
         h = data_dict["h"]
         x = data_dict["x"]
 
         assert h.shape[0] == x.shape[0], "Number of nodes does not match number of coordinates"
 
-        f.write(f"{h.shape[0]}\n")
+        f.write(f"{h.shape[0]}\n\n")
 
         for onehot, coordinate in zip(h, x):
             element = element_from_onehot(onehot)
-            f.write(f"{element} {coordinate[0]} {coordinate[1]} {coordinate[2]}\n")
+            f.write(f"{element} {coordinate[0]:8.3f} {coordinate[1]:8.3f} {coordinate[2]:8.3f}\n")

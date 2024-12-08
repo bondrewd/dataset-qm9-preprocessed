@@ -11,12 +11,12 @@ def parameter_fixture():
     element_n = "N"
     element_o = "O"
     element_f = "F"
-    onehot_h = torch.tensor([[1.0, 0.0, 0.0, 0.0, 0.0]])
-    onehot_c = torch.tensor([[0.0, 1.0, 0.0, 0.0, 0.0]])
-    onehot_n = torch.tensor([[0.0, 0.0, 1.0, 0.0, 0.0]])
-    onehot_o = torch.tensor([[0.0, 0.0, 0.0, 1.0, 0.0]])
-    onehot_f = torch.tensor([[0.0, 0.0, 0.0, 0.0, 1.0]])
-    onehot_shape = (1, 5)
+    onehot_h = torch.tensor([1.0, 0.0, 0.0, 0.0, 0.0])
+    onehot_c = torch.tensor([0.0, 1.0, 0.0, 0.0, 0.0])
+    onehot_n = torch.tensor([0.0, 0.0, 1.0, 0.0, 0.0])
+    onehot_o = torch.tensor([0.0, 0.0, 0.0, 1.0, 0.0])
+    onehot_f = torch.tensor([0.0, 0.0, 0.0, 0.0, 1.0])
+    onehot_shape = (5,)
     return {
         "element_h": element_h,
         "element_c": element_c,
