@@ -1,5 +1,5 @@
 from fixtures import *
-from src.utils import onehot_from_element, element_from_onehot
+from src.utils import onehot_from_element, element_from_onehot, xyz_to_data_dict
 
 
 def test_onehot_from_element_execution(parameter_fixture):
@@ -86,3 +86,53 @@ def test_element_from_onehot_value(parameter_fixture):
 
     element = element_from_onehot(onehot_f)
     assert element == element_f, "Element is incorrect"
+
+
+def test_xyz_to_data_dict_execution(tmp_path, xyz_fixture):
+    xyz_file_content = xyz_fixture["xyz_file_content"]
+
+    tmp_xyz_path = tmp_path / "test_file.xyz"
+    tmp_xyz_path.write_text(xyz_file_content)
+    tmp_xyz_path_str = str(tmp_xyz_path)
+
+    try:
+        xyz_to_data_dict(tmp_xyz_path_str)
+    except ValueError as e:
+        pytest.fail(e)
+
+
+def test_xyz_to_data_dict_output_shape(tmp_path, xyz_fixture):
+    xyz_file_content = xyz_fixture["xyz_file_content"]
+    xyz_data_dict = xyz_fixture["xyz_data_dict"]
+
+    tmp_xyz_path = tmp_path / "test_file.xyz"
+    tmp_xyz_path.write_text(xyz_file_content)
+    tmp_xyz_path_str = str(tmp_xyz_path)
+
+    data_dict = xyz_to_data_dict(tmp_xyz_path_str)
+
+    assert data_dict["h"].shape == xyz_data_dict["h"].shape, "Output shape is incorrect"
+    assert data_dict["x"].shape == xyz_data_dict["x"].shape, "Output shape is incorrect"
+    assert data_dict["e"].shape == xyz_data_dict["e"].shape, "Output shape is incorrect"
+
+
+def test_xyz_to_data_dict_output_value(tmp_path, xyz_fixture):
+    xyz_file_content = xyz_fixture["xyz_file_content"]
+    xyz_data_dict = xyz_fixture["xyz_data_dict"]
+
+    tmp_xyz_path = tmp_path / "test_file.xyz"
+    tmp_xyz_path.write_text(xyz_file_content)
+    tmp_xyz_path_str = str(tmp_xyz_path)
+
+    data_dict = xyz_to_data_dict(tmp_xyz_path_str)
+
+    assert torch.equal(data_dict["h"], xyz_data_dict["h"]), "Output is incorrect"
+    assert torch.equal(data_dict["x"], xyz_data_dict["x"]), "Output is incorrect"
+    assert torch.equal(data_dict["e"], xyz_data_dict["e"]), "Output is incorrect"
+    assert data_dict["a"] == xyz_data_dict["a"], "Output is incorrect"
+    assert data_dict["g"] == xyz_data_dict["g"], "Output is incorrect"
+    assert data_dict["h_ctx"] == xyz_data_dict["h_ctx"], "Output is incorrect"
+    assert data_dict["x_ctx"] == xyz_data_dict["x_ctx"], "Output is incorrect"
+    assert data_dict["e_ctx"] == xyz_data_dict["e_ctx"], "Output is incorrect"
+    assert data_dict["a_ctx"] == xyz_data_dict["a_ctx"], "Output is incorrect"
+    assert data_dict["g_ctx"] == xyz_data_dict["g_ctx"], "Output is incorrect"
