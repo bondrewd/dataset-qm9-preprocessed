@@ -8,33 +8,33 @@ from torch import Tensor
 def onehot_from_element(element: str) -> Tensor:
     match element:
         case "H":
-            return torch.tensor([1.0, 0.0, 0.0, 0.0, 0.0], dtype=torch.float32)
+            return torch.tensor([[1.0, 0.0, 0.0, 0.0, 0.0]], dtype=torch.float32)
         case "C":
-            return torch.tensor([0.0, 1.0, 0.0, 0.0, 0.0], dtype=torch.float32)
+            return torch.tensor([[0.0, 1.0, 0.0, 0.0, 0.0]], dtype=torch.float32)
         case "N":
-            return torch.tensor([0.0, 0.0, 1.0, 0.0, 0.0], dtype=torch.float32)
+            return torch.tensor([[0.0, 0.0, 1.0, 0.0, 0.0]], dtype=torch.float32)
         case "O":
-            return torch.tensor([0.0, 0.0, 0.0, 1.0, 0.0], dtype=torch.float32)
+            return torch.tensor([[0.0, 0.0, 0.0, 1.0, 0.0]], dtype=torch.float32)
         case "F":
-            return torch.tensor([0.0, 0.0, 0.0, 0.0, 1.0], dtype=torch.float32)
+            return torch.tensor([[0.0, 0.0, 0.0, 0.0, 1.0]], dtype=torch.float32)
         case _:
-            raise Exception(f"Unknown element {element}")
+            raise ValueError(f"Unknown element {element}")
 
 
 def element_from_onehot(onehot: Tensor) -> str:
-    if len(onehot) != 5:
+    if onehot.shape != (1, 5):
+        raise Exception("Invalid onehot shape")
+    if torch.sum(onehot) != 1.0 or torch.sum(onehot > 0.0) != 1:
         raise Exception("Invalid onehot format")
-    if torch.sum(onehot) != 1.0:
-        raise Exception("Invalid onehot format")
-    if onehot[0] == 1.0:
+    if onehot[0, 0] == 1.0:
         return "H"
-    if onehot[1] == 1.0:
+    if onehot[0, 1] == 1.0:
         return "C"
-    if onehot[2] == 1.0:
+    if onehot[0, 2] == 1.0:
         return "N"
-    if onehot[3] == 1.0:
+    if onehot[0, 3] == 1.0:
         return "O"
-    if onehot[4] == 1.0:
+    if onehot[0, 4] == 1.0:
         return "F"
 
 
@@ -59,7 +59,7 @@ def xyz_to_data_dict(xyz_path: str) -> dict[str, Optional[Tensor]]:
         x = float(tokens[1])
         y = float(tokens[2])
         z = float(tokens[3])
-        coordinate = torch.tensor([x, y, z])
+        coordinate = torch.tensor([[x, y, z]])
         # Save element and coordinates
         elements.append(element)
         coordinates.append(coordinate)
@@ -72,14 +72,16 @@ def xyz_to_data_dict(xyz_path: str) -> dict[str, Optional[Tensor]]:
     edge_index = torch.tensor([src + dst, dst + src], dtype=torch.int64)
 
     data_dict = {
-        "h": torch.tensor(elements, dtype=torch.float32),
-        "x": torch.tensor(coordinates, dtype=torch.float32),
-        "e": torch.tensor(edge_index, dtype=torch.int64),
+        "h": torch.vstack(elements),
+        "x": torch.vstack(coordinates),
+        "e": torch.tensor(edge_index),
         "a": None,
+        "g": None,
         "h_ctx": None,
         "x_ctx": None,
         "e_ctx": None,
         "a_ctx": None,
+        "g_ctx": None,
     }
 
     return data_dict
