@@ -12,3 +12,6 @@ wheels/
 # Editor configuration files
 .idea
 .vscode
+
+# Output files
+*.pth
