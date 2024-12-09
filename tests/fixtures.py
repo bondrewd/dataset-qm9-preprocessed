@@ -58,6 +58,17 @@ H	2.0954056876	4.5102041449	-1.1007688955	0.096668
 CN1C2C3C4=CCC13C24	CN1[C@H]2[C@@]31[C@@H]1[C]([CH]C3)[C@H]21	
 InChI=1S/C8H9N/c1-9-7-5-4-2-3-8(5,9)6(4)7/h2,5-7H,3H2,1H3	InChI=1S/C8H9N/c1-9-7-5-4-2-3-8(7,9)6(4)5/h2,5-7H,3H2,1H3/t5-,6+,7+,8-,9?/m0/s1
 """
+
+    xyz_str_with_sci_notation = """1
+foo
+H 1.0*^0 2.0*^2 3.0*^-3
+"""
+
+    xyz_str_with_one_atom = """1
+foo
+H 0.0 0.0 0.0
+    """
+
     edges = list(itertools.combinations(range(18), 2))
     src, dst = zip(*edges)
     edge_index = torch.tensor([src + dst, dst + src], dtype=torch.int64)
@@ -113,4 +124,9 @@ InChI=1S/C8H9N/c1-9-7-5-4-2-3-8(5,9)6(4)7/h2,5-7H,3H2,1H3	InChI=1S/C8H9N/c1-9-7-
         "g_ctx": None,
     }
 
-    return {"xyz_str": xyz_str, "xyz_data_dict": xyz_data_dict}
+    return {
+        "xyz_str": xyz_str,
+        "xyz_str_with_sci_notation": xyz_str_with_sci_notation,
+        "xyz_str_with_one_atom": xyz_str_with_one_atom,
+        "xyz_data_dict": xyz_data_dict
+    }

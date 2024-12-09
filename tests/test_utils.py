@@ -140,6 +140,20 @@ def test_data_dict_from_xyz_str_output_value(xyz_fixture):
     assert data_dict["g_ctx"] == xyz_data_dict["g_ctx"], "Output is incorrect"
 
 
+def test_data_dict_from_xyz_str_with_sci_notation(xyz_fixture):
+    xyz_str_with_sci_notation = xyz_fixture["xyz_str_with_sci_notation"]
+    data_dict = data_dict_from_xyz_str(xyz_str_with_sci_notation)
+
+    assert torch.allclose(data_dict["x"], torch.tensor([1.0e0, 2.0e2, 3.0e-3])), "Output is incorrect"
+
+
+def test_data_dict_from_xyz_str_with_one_atom(xyz_fixture):
+    xyz_str_with_one_atom = xyz_fixture["xyz_str_with_one_atom"]
+    data_dict = data_dict_from_xyz_str(xyz_str_with_one_atom)
+
+    assert data_dict["e"] is None, "Output is incorrect"
+
+
 def test_xyz_str_from_data_dict_execution(xyz_fixture):
     xyz_data_dict = xyz_fixture["xyz_data_dict"]
 

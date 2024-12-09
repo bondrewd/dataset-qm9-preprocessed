@@ -55,20 +55,24 @@ def data_dict_from_xyz_str(xyz_str: str) -> dict[str, Optional[Tensor]]:
         element = tokens[0].strip()
         element = onehot_from_element(element)
         # Parse coordinates
-        x = float(tokens[1])
-        y = float(tokens[2])
-        z = float(tokens[3])
+        x = float(tokens[1].replace('*^', 'e'))
+        y = float(tokens[2].replace('*^', 'e'))
+        z = float(tokens[3].replace('*^', 'e'))
         coordinate = torch.tensor([[x, y, z]])
         # Save element and coordinates
         elements.append(element)
         coordinates.append(coordinate)
 
-    # Generate all possible pairs of nodes
-    edges = list(itertools.combinations(range(num_nodes), 2))
-    # Separate the pairs into source and destination lists
-    src, dst = zip(*edges)
-    # Create a tensor of shape (2, x) where x is the number of edges
-    edge_index = torch.tensor([src + dst, dst + src], dtype=torch.int64)
+    # Generate edges
+    if num_nodes > 1:
+        # Generate all possible pairs of nodes
+        edges = list(itertools.combinations(range(num_nodes), 2))
+        # Separate the pairs into source and destination lists
+        src, dst = zip(*edges)
+        # Create a tensor of shape (2, x) where x is the number of edges
+        edge_index = torch.tensor([src + dst, dst + src], dtype=torch.int64)
+    else:
+        edge_index = None
 
     data_dict = {
         "h": torch.vstack(elements),

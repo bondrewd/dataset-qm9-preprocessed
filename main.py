@@ -18,7 +18,8 @@ def main():
     logging.info("Step 01 - Parse arguments")
 
     parser = argparse.ArgumentParser(description="Load a configuration file in TOML format.")
-    parser.add_argument("cfg", type=str, help="Path to the configuration file in TOML format.")
+    parser.add_argument("cfg", type=str, help="Path to the configuration file in TOML format")
+    parser.add_argument("--output", "-o", type=str, help="Output database name", default="out")
 
     args = parser.parse_args()
 
@@ -77,30 +78,47 @@ def main():
     logging.info("Step 05 - Completed")
 
     # Step 6: Parse xyz files
-    logging.info("Step 06 - Parse xyz files")
+    logging.info("Step 07 - List and sort xyz files")
 
     xyz_file_paths = list(raw_dir_path.rglob("*.xyz"))
     xyz_file_paths.sort()
+
+    logging.info("Step 06 - Completed")
+
+    # Step 7: Parse xyz files
+    logging.info("Step 07 - Parse xyz files")
+
+    data_dicts = {}
     for xyz_file_path in xyz_file_paths:
         try:
-            # Step 6a: Create data dictionary
+            # Step 7a: Create data dictionary
             with open(xyz_file_path, "r") as xyz_file:
                 xyz_str = xyz_file.read()
             data_dict = data_dict_from_xyz_str(xyz_str)
-            # Step 6b: Remove center of gravity from coordinates
+            # Step 7b: Remove center of gravity from coordinates
             data_dict["x"] = data_dict["x"] - torch.mean(data_dict["x"], dim=0, keepdim=True)
             if data_dict["x_ctx"] is not None:
                 data_dict["x_ctx"] = data_dict["x_ctx"] - torch.mean(data_dict["x_ctx"], dim=0, keepdim=True)
-            logging.info(f"Step 06 - Successfully processed '{xyz_file_path}'")
+            # Step 7c: Save data dict
+            data_dicts[xyz_file_path.stem] = data_dict
         except Exception as e:
             if isinstance(e, (KeyboardInterrupt, SystemExit)):
                 raise
-            logging.error(f"Step 06 - Failed to process file '{xyz_file_path}': {e}")
+            logging.error(f"Step 07 - Failed to process file '{xyz_file_path}': {e}")
             continue
 
-        break
+        if len(data_dicts) == 1000:
+            break
 
-    logging.info("Step 06 - Completed")
+    logging.info("Step 07 - Completed")
+
+    # Step 8: Save results
+    logging.info("Step 08 - Save results")
+
+    out_path = pathlib.Path(args.output).with_suffix(".pth")
+    torch.save(data_dicts, out_path)
+
+    logging.info("Step 08 - Completed")
 
 
 if __name__ == "__main__":
