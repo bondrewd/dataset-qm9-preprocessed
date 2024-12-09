@@ -23,9 +23,9 @@ def onehot_from_element(element: str) -> Tensor:
 
 def element_from_onehot(onehot: Tensor) -> str:
     if onehot.shape != (5,):
-        raise Exception("Invalid onehot shape")
+        raise ValueError("Invalid onehot shape")
     if torch.sum(onehot) != 1.0 or torch.sum(onehot > 0.0) != 1:
-        raise Exception("Invalid onehot format")
+        raise ValueError("Invalid onehot format")
     if onehot[0] == 1.0:
         return "H"
     if onehot[1] == 1.0:
@@ -73,7 +73,7 @@ def data_dict_from_xyz_str(xyz_str: str) -> dict[str, Optional[Tensor]]:
     data_dict = {
         "h": torch.vstack(elements),
         "x": torch.vstack(coordinates),
-        "e": torch.tensor(edge_index),
+        "e": edge_index,
         "a": None,
         "g": None,
         "h_ctx": None,

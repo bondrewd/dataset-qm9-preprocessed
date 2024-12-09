@@ -88,6 +88,20 @@ def test_element_from_onehot_value(parameter_fixture):
     assert element == element_f, "Element is incorrect"
 
 
+def test_element_from_onehot_raises():
+    with pytest.raises(ValueError, match="Invalid onehot shape"):
+        element_from_onehot(torch.tensor([1.0, 0.0]))
+
+    with pytest.raises(ValueError, match="Invalid onehot format"):
+        element_from_onehot(torch.tensor([1.0, 0.0, 0.0, 0.0, 1.0]))
+
+    with pytest.raises(ValueError, match="Invalid onehot format"):
+        element_from_onehot(torch.tensor([0.5, 0.0, 0.0, 0.0, 0.0]))
+
+    with pytest.raises(ValueError, match="Invalid onehot format"):
+        element_from_onehot(torch.tensor([0.5, 0.0, 0.5, 0.0, 0.0]))
+
+
 def test_data_dict_from_xyz_str_execution(xyz_fixture):
     xyz_str = xyz_fixture["xyz_str"]
 
@@ -168,14 +182,14 @@ def test_inverse(xyz_fixture):
     xyz_data_dict_original = data_dict_from_xyz_str(xyz_str_original)
 
     xyz_str_inverted = xyz_str_from_data_dict(data_dict_from_xyz_str(xyz_str_original))
-    assert xyz_str_original == xyz_str_inverted, "Inversibility failed"
+    assert xyz_str_original == xyz_str_inverted, "Inverse failed"
 
     xyz_data_dict_inverted = data_dict_from_xyz_str(xyz_str_from_data_dict(xyz_data_dict_original))
-    assert torch.equal(xyz_data_dict_original["h"], xyz_data_dict_inverted["h"]), "Inversibility failed"
-    assert torch.equal(xyz_data_dict_original["x"], xyz_data_dict_inverted["x"]), "Inversibility failed"
-    assert torch.equal(xyz_data_dict_original["e"], xyz_data_dict_inverted["e"]), "Inversibility failed"
+    assert torch.equal(xyz_data_dict_original["h"], xyz_data_dict_inverted["h"]), "Inverse failed"
+    assert torch.equal(xyz_data_dict_original["x"], xyz_data_dict_inverted["x"]), "Inverse failed"
+    assert torch.equal(xyz_data_dict_original["e"], xyz_data_dict_inverted["e"]), "Inverse failed"
     assert xyz_data_dict_original["a"] == xyz_data_dict_inverted["a"], "Inversibility failed"
-    assert xyz_data_dict_original["h_ctx"] == xyz_data_dict_inverted["h_ctx"], "Inversibility failed"
-    assert xyz_data_dict_original["x_ctx"] == xyz_data_dict_inverted["x_ctx"], "Inversibility failed"
-    assert xyz_data_dict_original["e_ctx"] == xyz_data_dict_inverted["e_ctx"], "Inversibility failed"
-    assert xyz_data_dict_original["a_ctx"] == xyz_data_dict_inverted["a_ctx"], "Inversibility failed"
+    assert xyz_data_dict_original["h_ctx"] == xyz_data_dict_inverted["h_ctx"], "Inverse failed"
+    assert xyz_data_dict_original["x_ctx"] == xyz_data_dict_inverted["x_ctx"], "Inverse failed"
+    assert xyz_data_dict_original["e_ctx"] == xyz_data_dict_inverted["e_ctx"], "Inverse failed"
+    assert xyz_data_dict_original["a_ctx"] == xyz_data_dict_inverted["a_ctx"], "Inverse failed"
