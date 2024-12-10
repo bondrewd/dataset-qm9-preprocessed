@@ -7,7 +7,7 @@ import requests
 import torch
 from torch.utils.data import Dataset
 
-from src.dataset_qm9_preprocessed.utils import data_dict_from_xyz_str
+from dataset_qm9_preprocessed.utils import data_dict_from_xyz_str
 
 PROJECT_ROOT_PATH = Path(__file__).resolve().parent.parent
 
