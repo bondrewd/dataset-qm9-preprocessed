@@ -79,3 +79,10 @@ class QM9Dataset(Dataset):
 
     def __getitem__(self, idx):
         return self.data_dicts[idx]
+
+
+if __name__ == "__main__":
+    dataset = QM9Dataset()
+    print("QM9 Dataset")
+    print(f"Length: {len(dataset)}")
+    print(f"Location: {dataset.dataset_data_path.resolve()}")
