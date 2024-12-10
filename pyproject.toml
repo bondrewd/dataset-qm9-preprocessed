@@ -3,6 +3,9 @@ name = "dataset-qm9-preprocessed"
 version = "0.1.0"
 description = "QM9 dataset preprocessed for using it with the EGNN model"
 readme = "README.md"
+authors = [
+    { name = "Diego Ugarte", email = "diego.ugarte@outlook.com" }
+]
 requires-python = ">=3.12"
 dependencies = [
     "numpy>=2.2.0",
@@ -10,3 +13,7 @@ dependencies = [
     "requests>=2.32.3",
     "torch>=2.5.1",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

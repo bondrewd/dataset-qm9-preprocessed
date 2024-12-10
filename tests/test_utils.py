@@ -1,5 +1,5 @@
 from fixtures import *
-from src.utils import onehot_from_element, element_from_onehot, data_dict_from_xyz_str, xyz_str_from_data_dict
+from dataset_qm9_preprocessed.utils import onehot_from_element, element_from_onehot, data_dict_from_xyz_str, xyz_str_from_data_dict
 
 
 def test_onehot_from_element_execution(parameter_fixture):

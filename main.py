@@ -1,4 +1,4 @@
-from src.dataset import QM9Dataset
+from src import QM9Dataset
 
 
 def main():

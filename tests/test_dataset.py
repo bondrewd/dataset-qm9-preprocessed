@@ -1,4 +1,4 @@
-from src.dataset import QM9Dataset
+from dataset_qm9_preprocessed.dataset import QM9Dataset
 
 
 def test_dataset_len():
