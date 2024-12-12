@@ -63,7 +63,7 @@ def data_dict_from_xyz_str(xyz_str: str) -> dict[str, Optional[Tensor]]:
         elements.append(element)
         coordinates.append(coordinate)
 
-    # Generate edges
+    # Calculate edges
     if num_nodes > 1:
         # Generate all possible pairs of nodes
         edges = list(itertools.combinations(range(num_nodes), 2))
@@ -85,6 +85,7 @@ def data_dict_from_xyz_str(xyz_str: str) -> dict[str, Optional[Tensor]]:
         "e_ctx": None,
         "a_ctx": None,
         "g_ctx": None,
+        "segments": [num_nodes],
     }
 
     return data_dict
@@ -93,15 +94,93 @@ def data_dict_from_xyz_str(xyz_str: str) -> dict[str, Optional[Tensor]]:
 def xyz_str_from_data_dict(data_dict: dict[str, Optional[Tensor]]) -> str:
     xyz_str = ""
 
+    n = data_dict["segments"][0]
     h = data_dict["h"]
     x = data_dict["x"]
 
     assert h.shape[0] == x.shape[0], "Number of nodes does not match number of coordinates"
 
-    xyz_str += f"{h.shape[0]}\n\n"
+    xyz_str += f"{n}\n\n"
 
     for onehot, coordinate in zip(h, x):
         element = element_from_onehot(onehot)
         xyz_str += f"{element} {coordinate[0]:8.3f} {coordinate[1]:8.3f} {coordinate[2]:8.3f}\n"
 
     return xyz_str
+
+
+def collate_data_dicts(data_dicts: list[dict[str, Optional[Tensor]]]) -> dict[str, Optional[Tensor]]:
+    # Concatenate segments
+    segments = [data_dict["segments"][0] for data_dict in data_dicts]
+
+    # Concatenate nodes features
+    h = torch.cat([data_dict["h"] for data_dict in data_dicts], dim=0)
+
+    # Concatenate positions
+    x = torch.cat([data_dict["x"] for data_dict in data_dicts], dim=0)
+
+    # Concatenate edges
+    offsets = [0] + segments[:-1]
+    e = torch.cat([data_dict["e"] + offset for data_dict, offset in zip(data_dicts, offsets)], dim=1)
+
+    # Concatenate edge features
+    if data_dicts[0]["a"] is not None:
+        a = torch.cat([data_dict["a"] for data_dict in data_dicts], dim=0)
+    else:
+        a = None
+
+    # Concatenate graph features
+    if data_dicts[0]["g"] is not None:
+        g = torch.cat([data_dict["g"].repeat(len(data_dict["h"]), 1) for data_dict in data_dicts], dim=0)
+    else:
+        g = None
+
+    # Concatenate context node features
+    if data_dicts[0]["h_ctx"] is not None:
+        h_ctx = torch.cat([data_dict["h_ctx"] for data_dict in data_dicts], dim=0)
+    else:
+        h_ctx = None
+
+    # Concatenate context node features
+    if data_dicts[0]["x_ctx"] is not None:
+        x_ctx = torch.cat([data_dict["x_ctx"] for data_dict in data_dicts], dim=0)
+    else:
+        x_ctx = None
+
+    # Concatenate edges
+    if data_dicts[0]["e_ctx"] is not None:
+        ctx_segments = [data_dict["h_ctx"].shape[0] for data_dict in data_dicts]
+        ctx_offsets = [0] + ctx_segments[:-1]
+        global_offset = sum(segments)
+        e_ctx = torch.cat([torch.tensor([
+            data_dict["e"][:1] + offset,
+            data_dict["e"][1:] - data_dict["h"].shape[0] + global_offset + ctx_offset,
+        ]) for data_dict, offset, ctx_offset in zip(data_dicts, offsets, ctx_offsets)], dim=1)
+    else:
+        e_ctx = None
+
+    # Concatenate context node features
+    if data_dicts[0]["a_ctx"] is not None:
+        a_ctx = torch.cat([data_dict["a_ctx"] for data_dict in data_dicts], dim=0)
+    else:
+        a_ctx = None
+
+    # Concatenate context node features
+    if data_dicts[0]["g_ctx"] is not None:
+        g_ctx = torch.cat([data_dict["g_ctx"] for data_dict in data_dicts], dim=0)
+    else:
+        g_ctx = None
+
+    return {
+        "h": h,
+        "x": x,
+        "e": e,
+        "a": a,
+        "g": g,
+        "h_ctx": h_ctx,
+        "x_ctx": x_ctx,
+        "e_ctx": e_ctx,
+        "a_ctx": a_ctx,
+        "g_ctx": g_ctx,
+        "segments": segments,
+    }
