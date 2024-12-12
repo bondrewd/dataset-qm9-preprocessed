@@ -38,7 +38,7 @@ def element_from_onehot(onehot: Tensor) -> str:
         return "F"
 
 
-def data_dict_from_xyz_str(xyz_str: str) -> dict[str, Optional[Tensor]]:
+def data_dict_from_xyz_str(xyz_str: str) -> dict[str, Optional[Tensor] | list[int]]:
     # Read xyz file
     lines = xyz_str.splitlines()
 
@@ -91,7 +91,7 @@ def data_dict_from_xyz_str(xyz_str: str) -> dict[str, Optional[Tensor]]:
     return data_dict
 
 
-def xyz_str_from_data_dict(data_dict: dict[str, Optional[Tensor]]) -> str:
+def xyz_str_from_data_dict(data_dict: dict[str, Optional[Tensor] | list[int]]) -> str:
     xyz_str = ""
 
     n = data_dict["segments"][0]
@@ -109,7 +109,7 @@ def xyz_str_from_data_dict(data_dict: dict[str, Optional[Tensor]]) -> str:
     return xyz_str
 
 
-def collate_data_dicts(data_dicts: list[dict[str, Optional[Tensor]]]) -> dict[str, Optional[Tensor]]:
+def collate_data_dicts(data_dicts: list[dict[str, Optional[Tensor] | list[int]]]) -> dict[str, Optional[Tensor] | list[int]]:
     # Concatenate segments
     segments = [data_dict["segments"][0] for data_dict in data_dicts]
 
