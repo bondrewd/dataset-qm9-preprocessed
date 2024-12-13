@@ -13,7 +13,7 @@ PROJECT_ROOT_PATH = Path(__file__).resolve().parent.parent
 
 
 class QM9Dataset(Dataset):
-    def __init__(self, url: Optional[str] = None, dataset_dir_path: Optional[str] = None):
+    def __init__(self, url: Optional[str] = None, dataset_dir_path: Optional[str] = None, force_download: bool = False):
         if url is None:
             self.url = "https://github.com/bondrewd/dataset-qm9-raw/raw/refs/heads/main/dsgdb9nsd.xyz.tar.bz2"
         else:
@@ -26,7 +26,7 @@ class QM9Dataset(Dataset):
 
         self.dataset_data_path = Path(self.dataset_dir_path / "dataset-qm9").with_suffix(".pth")
 
-        if not self.dataset_data_path.exists():
+        if not self.dataset_data_path.exists() and not force_download:
             with tempfile.TemporaryDirectory() as tmp_dir:
                 # Step 1: convert temp dir to a Path
                 tmp_dir_path = Path(tmp_dir)
