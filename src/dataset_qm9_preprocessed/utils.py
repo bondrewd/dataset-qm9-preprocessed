@@ -70,9 +70,12 @@ def data_dict_from_xyz_str(xyz_str: str) -> dict[str, Optional[Tensor] | list[in
         # Separate the pairs into source and destination lists
         src, dst = zip(*edges)
         # Create a tensor of shape (2, x) where x is the number of edges
-        edge_index = torch.tensor([src + dst, dst + src], dtype=torch.int64)
+        edge_index = torch.tensor([src + dst, dst + src])
     else:
         edge_index = None
+
+    # Calculate segments
+    segments = torch.tensor([num_nodes])
 
     data_dict = {
         "h": torch.vstack(elements),
@@ -85,7 +88,7 @@ def data_dict_from_xyz_str(xyz_str: str) -> dict[str, Optional[Tensor] | list[in
         "e_ctx": None,
         "a_ctx": None,
         "g_ctx": None,
-        "segments": [num_nodes],
+        "segments": segments,
     }
 
     return data_dict
@@ -94,7 +97,7 @@ def data_dict_from_xyz_str(xyz_str: str) -> dict[str, Optional[Tensor] | list[in
 def xyz_str_from_data_dict(data_dict: dict[str, Optional[Tensor] | list[int]]) -> str:
     xyz_str = ""
 
-    n = data_dict["segments"][0]
+    n = data_dict["segments"].item()
     h = data_dict["h"]
     x = data_dict["x"]
 
@@ -111,7 +114,7 @@ def xyz_str_from_data_dict(data_dict: dict[str, Optional[Tensor] | list[int]]) -
 
 def collate_data_dicts(data_dicts: list[dict[str, Optional[Tensor] | list[int]]]) -> dict[str, Optional[Tensor] | list[int]]:
     # Concatenate segments
-    segments = [data_dict["segments"][0] for data_dict in data_dicts]
+    segments = torch.cat([data_dict["segments"] for data_dict in data_dicts])
 
     # Concatenate nodes features
     h = torch.cat([data_dict["h"] for data_dict in data_dicts], dim=0)
@@ -120,7 +123,7 @@ def collate_data_dicts(data_dicts: list[dict[str, Optional[Tensor] | list[int]]]
     x = torch.cat([data_dict["x"] for data_dict in data_dicts], dim=0)
 
     # Concatenate edges
-    offsets = [0] + segments[:-1]
+    offsets = [0] + segments.tolist()[:-1]
     e = torch.cat([data_dict["e"] + offset for data_dict, offset in zip(data_dicts, offsets)], dim=1)
 
     # Concatenate edge features
@@ -131,7 +134,7 @@ def collate_data_dicts(data_dicts: list[dict[str, Optional[Tensor] | list[int]]]
 
     # Concatenate graph features
     if data_dicts[0]["g"] is not None:
-        g = torch.cat([data_dict["g"].repeat(len(data_dict["h"]), 1) for data_dict in data_dicts], dim=0)
+        g = torch.cat([data_dict["g"] for data_dict in data_dicts], dim=0)
     else:
         g = None
 
@@ -152,10 +155,10 @@ def collate_data_dicts(data_dicts: list[dict[str, Optional[Tensor] | list[int]]]
         ctx_segments = [data_dict["h_ctx"].shape[0] for data_dict in data_dicts]
         ctx_offsets = [0] + ctx_segments[:-1]
         global_offset = sum(segments)
-        e_ctx = torch.cat([torch.tensor([
-            data_dict["e"][:1] + offset,
-            data_dict["e"][1:] - data_dict["h"].shape[0] + global_offset + ctx_offset,
-        ]) for data_dict, offset, ctx_offset in zip(data_dicts, offsets, ctx_offsets)], dim=1)
+        e_ctx = torch.cat([torch.cat([
+            data_dict["e_ctx"][:1] + offset,
+            data_dict["e_ctx"][1:] - data_dict["h"].shape[0] + global_offset + ctx_offset,
+        ], dim=0) for data_dict, offset, ctx_offset in zip(data_dicts, offsets, ctx_offsets)], dim=1)
     else:
         e_ctx = None
 

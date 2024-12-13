@@ -71,7 +71,7 @@ H 0.0 0.0 0.0
 
     edges = list(itertools.combinations(range(18), 2))
     src, dst = zip(*edges)
-    edge_index = torch.tensor([src + dst, dst + src], dtype=torch.int64)
+    edge_index = torch.tensor([src + dst, dst + src])
 
     xyz_data_dict = {
         "h": torch.tensor([
@@ -122,12 +122,75 @@ H 0.0 0.0 0.0
         "e_ctx": None,
         "a_ctx": None,
         "g_ctx": None,
-        "segments": [18],
+        "segments": torch.tensor([18]),
     }
 
     return {
         "xyz_str": xyz_str,
         "xyz_str_with_sci_notation": xyz_str_with_sci_notation,
         "xyz_str_with_one_atom": xyz_str_with_one_atom,
-        "xyz_data_dict": xyz_data_dict
+        "xyz_data_dict": xyz_data_dict,
+    }
+
+
+@pytest.fixture
+def data_dict_fixture():
+    data_dict = {
+        "h": torch.tensor([
+            [0.0, 0.0, 1.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0, 0.0],
+        ]),
+        "x": torch.tensor([
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+        ]),
+        "e": torch.tensor([
+            [0, 0, 1, 1, 2, 2],
+            [1, 2, 0, 2, 0, 1],
+        ]),
+        "a": torch.tensor([
+            [1.0, 2.0],
+            [3.0, 4.0],
+            [5.0, 6.0],
+            [7.0, 8.0],
+            [9.0, 0.0],
+            [1.0, 2.0],
+        ]),
+        "g": torch.tensor([
+            [1.0, 2.0, 3.0],
+        ]),
+        "h_ctx": torch.tensor([
+            [0.0, 1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0, 0.0],
+        ]),
+        "x_ctx": torch.tensor([
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+        ]),
+        "e_ctx": torch.tensor([
+            [0, 0, 1, 1, 2, 2],
+            [3, 4, 5, 6, 3, 5],
+        ]),
+        "a_ctx": torch.tensor([
+            [2.0, 7.0, 1.0],
+            [1.0, 1.0, 2.0],
+            [6.0, 3.0, 3.0],
+            [3.0, 0.0, 4.0],
+            [4.0, 8.0, 5.0],
+            [2.0, 2.0, 6.0],
+        ]),
+        "g_ctx": torch.tensor([
+            [1.0, 2.0, 3.0, 4.0, 5.0],
+        ]),
+        "segments": torch.tensor([3]),
+    }
+
+    return {
+        "data_dict": data_dict,
     }

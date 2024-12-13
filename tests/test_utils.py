@@ -1,5 +1,5 @@
+from dataset_qm9_preprocessed.utils import onehot_from_element, element_from_onehot, data_dict_from_xyz_str, xyz_str_from_data_dict, collate_data_dicts
 from fixtures import *
-from dataset_qm9_preprocessed.utils import onehot_from_element, element_from_onehot, data_dict_from_xyz_str, xyz_str_from_data_dict
 
 
 def test_onehot_from_element_execution(parameter_fixture):
@@ -207,3 +207,113 @@ def test_inverse(xyz_fixture):
     assert xyz_data_dict_original["x_ctx"] == xyz_data_dict_inverted["x_ctx"], "Inverse failed"
     assert xyz_data_dict_original["e_ctx"] == xyz_data_dict_inverted["e_ctx"], "Inverse failed"
     assert xyz_data_dict_original["a_ctx"] == xyz_data_dict_inverted["a_ctx"], "Inverse failed"
+
+
+def test_collate_data_dicts_execution(data_dict_fixture):
+    data_dict = data_dict_fixture["data_dict"]
+    try:
+        collate_data_dicts([data_dict, data_dict])
+    except ValueError as e:
+        pytest.fail(e)
+
+
+def test_collate_data_dicts_single_element(data_dict_fixture):
+    data_dict = data_dict_fixture["data_dict"]
+    collated_data_dict = collate_data_dicts([data_dict])
+    assert torch.equal(data_dict["h"], collated_data_dict["h"]), "Output is incorrect"
+    assert torch.equal(data_dict["x"], collated_data_dict["x"]), "Output is incorrect"
+    assert torch.equal(data_dict["e"], collated_data_dict["e"]), "Output is incorrect"
+    assert torch.equal(data_dict["a"], collated_data_dict["a"]), "Output is incorrect"
+    assert torch.equal(data_dict["g"], collated_data_dict["g"]), "Output is incorrect"
+    assert torch.equal(data_dict["h_ctx"], collated_data_dict["h_ctx"]), "Output is incorrect"
+    assert torch.equal(data_dict["x_ctx"], collated_data_dict["x_ctx"]), "Output is incorrect"
+    assert torch.equal(data_dict["e_ctx"], collated_data_dict["e_ctx"]), "Output is incorrect"
+    assert torch.equal(data_dict["a_ctx"], collated_data_dict["a_ctx"]), "Output is incorrect"
+    assert torch.equal(data_dict["g_ctx"], collated_data_dict["g_ctx"]), "Output is incorrect"
+    assert torch.equal(data_dict["segments"], collated_data_dict["segments"]), "Output is incorrect"
+
+
+def test_collate_data_dicts_value(data_dict_fixture):
+    data_dict = data_dict_fixture["data_dict"]
+    collated_data_dict = collate_data_dicts([data_dict, data_dict])
+    assert torch.equal(collated_data_dict["h"], torch.tensor([
+        [0.0, 0.0, 1.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0, 0.0, 0.0],
+    ])), "Output is incorrect"
+    assert torch.equal(collated_data_dict["x"], torch.tensor([
+        [0.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+    ])), "Output is incorrect"
+    assert torch.equal(collated_data_dict["e"], torch.tensor([
+        [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
+        [1, 2, 0, 2, 0, 1, 4, 5, 3, 5, 3, 4],
+    ])), "Output is incorrect"
+    assert torch.equal(collated_data_dict["a"], torch.tensor([
+        [1.0, 2.0],
+        [3.0, 4.0],
+        [5.0, 6.0],
+        [7.0, 8.0],
+        [9.0, 0.0],
+        [1.0, 2.0],
+        [1.0, 2.0],
+        [3.0, 4.0],
+        [5.0, 6.0],
+        [7.0, 8.0],
+        [9.0, 0.0],
+        [1.0, 2.0],
+    ])), "Output is incorrect"
+    assert torch.equal(collated_data_dict["g"], torch.tensor([
+        [1.0, 2.0, 3.0],
+        [1.0, 2.0, 3.0],
+    ])), "Output is incorrect"
+    assert torch.equal(collated_data_dict["h_ctx"], torch.tensor([
+        [0.0, 1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0, 0.0],
+    ])), "Output is incorrect"
+    assert torch.equal(collated_data_dict["x_ctx"], torch.tensor([
+        [0.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0],
+        [0.0, 0.0, 0.0],
+        [1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0],
+    ])), "Output is incorrect"
+    assert torch.equal(collated_data_dict["e_ctx"], torch.tensor([
+        [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
+        [6, 7, 8, 9, 6, 8, 10, 11, 12, 13, 10, 12],
+    ])), "Output is incorrect"
+    assert torch.equal(collated_data_dict["a_ctx"], torch.tensor([
+        [2.0, 7.0, 1.0],
+        [1.0, 1.0, 2.0],
+        [6.0, 3.0, 3.0],
+        [3.0, 0.0, 4.0],
+        [4.0, 8.0, 5.0],
+        [2.0, 2.0, 6.0],
+        [2.0, 7.0, 1.0],
+        [1.0, 1.0, 2.0],
+        [6.0, 3.0, 3.0],
+        [3.0, 0.0, 4.0],
+        [4.0, 8.0, 5.0],
+        [2.0, 2.0, 6.0],
+    ])), "Output is incorrect"
+    assert torch.equal(collated_data_dict["g_ctx"], torch.tensor([
+        [1.0, 2.0, 3.0, 4.0, 5.0],
+        [1.0, 2.0, 3.0, 4.0, 5.0],
+    ])), "Output is incorrect"
+    assert torch.equal(collated_data_dict["segments"], torch.tensor([3, 3])), "Output is incorrect"
