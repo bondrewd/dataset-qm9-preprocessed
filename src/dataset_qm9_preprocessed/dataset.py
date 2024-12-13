@@ -26,7 +26,7 @@ class QM9Dataset(Dataset):
 
         self.dataset_data_path = Path(self.dataset_dir_path / "dataset-qm9").with_suffix(".pth")
 
-        if not self.dataset_data_path.exists() and not force_download:
+        if not self.dataset_data_path.exists() or force_download:
             with tempfile.TemporaryDirectory() as tmp_dir:
                 # Step 1: convert temp dir to a Path
                 tmp_dir_path = Path(tmp_dir)
